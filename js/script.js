@@ -1,24 +1,25 @@
-/*d3.csv('./data/fillars-2020-07.csv', (d) => {
-    //console.log(d);
-})*/
+//https://mappingwithd3.com/
+
 d3.json("https://opendata.arcgis.com/datasets/c26bd38e37eb41eab20941cbe5dc6bd5_0.geojson")
     .then(function(data){
-        let width = 500, height = 200;
-        let projection = d3.geoEqualEarth();
-        projection.fitSize([width, height], data);
-        let geoGenerator = d3.geoPath()
-            .projection(projection)
+        const links = [];
+        const metroData = [];
 
-        let svg = d3.select('body').append('svg')
-            .style('width', width)
-            .style('height', height);
-
-        svg.append('g').selectAll('path')
-            .data(data.features)
-            .join('path')
-            .attr('d', geoGenerator)
-            .attr('fill', 'red')
-            .attr('stroke', 'black');
+        // https://public-transport-hslhrt.opendata.arcgis.com/datasets/hsln-nousijam%C3%A4%C3%A4r%C3%A4t/data?geometry=23.009%2C59.925%2C26.489%2C60.404&page=7
+        // Metrons ID:n 50-66
+        
+        //Skapar egen array för metro objekt
+        for(let i = 49; i<66; i++){
+            for(let j = 0; j<17; j++){
+                metroData[j] = data.features[i];
+            }
+        }
+        console.log(metroData[0])
         
     })
+
+function createChart(data){
+   
+
+}
         
