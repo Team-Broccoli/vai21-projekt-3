@@ -16,7 +16,9 @@ d3.json("./data/hsl_nousijamäärät.geojson")
             metroData.push({
                 name: data.features[i].properties.Nimi,
                 id: data.features[i].properties.OBJECTID,
-                volume: data.features[i].properties.Nousijamaa
+                volume: data.features[i].properties.Nousijamaa,
+                lat: data.features[i].properties.fx,
+                lon: data.features[i].properties.fy
             });
             //Om itis station (IK) förgrena mot mellunmäki och puotila
             switch (data.features[i].properties.Lyhyt_tunn) {
@@ -59,26 +61,26 @@ d3.json("./data/hsl_nousijamäärät.geojson")
                         source: data.features[i].properties.OBJECTID,
                         target: data.features[i].properties.link[j]
                     })
-                } 
+                }
             }
         }
-        const dT = {nodes: trainData, links: trainLinks};
-        const dM = {nodes: metroData, links: metroLinks};
-        
+        const dT = { nodes: trainData, links: trainLinks };
+        const dM = { nodes: metroData, links: metroLinks };
+
         createMetroChart(dM);
 
-        $('#selection').change(function(){
+        $('#selection').change(function () {
             d3.selectAll('svg').remove();
-            let selection = $('#selection').val(); 
-            
-            switch(selection){
+            let selection = $('#selection').val();
+
+            switch (selection) {
                 case "metro":
                     createMetroChart(dM);
                     break;
                 case "rail":
                     createTrainChart(dT);
                     break;
-                    
+
             }
         })
 
@@ -86,6 +88,9 @@ d3.json("./data/hsl_nousijamäärät.geojson")
 
 //från lektionsexemplen
 function createMetroChart(data) {
+
+    let positioning = 'sim';
+
     const simulation = d3.forceSimulation(data.nodes)
         .force('charge', d3.forceManyBody().strength(-50))
         .force('link', d3.forceLink(data.links).id(d => d.id)
@@ -96,7 +101,7 @@ function createMetroChart(data) {
         .append('svg')
         .style('background', 'gray')
         //min-x, min-y, height, width
-        .attr("viewBox", [0, 0, 600, 600]);
+        .attr("viewBox", [0, 0, 1000, 600]);
 
     const link = svg
         .selectAll('path.link')
@@ -143,8 +148,8 @@ function createMetroChart(data) {
             })
             .on('end', (event, d) => {
                 if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+                d.fx = d.x;
+                d.fy = d.y;
             })
         );
 
@@ -175,6 +180,30 @@ function createMetroChart(data) {
         tooltip.style('opacity', 0)
     }
 
+    d3.select('#toggle').on('click', toggle)
+
+    function toggle() {
+        if (positioning === 'map') {
+            positioning = 'sim'
+
+            data.nodes.forEach(function (d) {
+                d.fx = null;
+                d.fy = null;
+                d.x = 250;
+                d.y = 150;
+
+            })
+        } else {
+            positioning = 'map'
+            data.nodes.forEach(function (d) {
+                d.fx = d.lat;
+                d.fy = d.lon;
+                simulation.alphaTarget(0.3).restart();
+
+            })
+        }
+
+    }
 }
 function createTrainChart(data) {
     const simulation = d3.forceSimulation(data.nodes)
@@ -205,33 +234,33 @@ function createTrainChart(data) {
         .attr('r', (d) => {
             //någorlunda vettig skala
             //fritt fram o leka fram bättre :D
-            if(d.volume < 500){
+            if (d.volume < 500) {
                 return d.volume * 0.01;
-            } 
-            else if(d.volume < 1000){
+            }
+            else if (d.volume < 1000) {
                 return d.volume * 0.003;
             }
-            else if(d.volume < 2000){
+            else if (d.volume < 2000) {
                 return d.volume * 0.002;
             }
-            else if(d.volume < 5000){
+            else if (d.volume < 5000) {
                 return d.volume * 0.001;
             }
-            else if(d.volume < 10000){
+            else if (d.volume < 10000) {
                 return d.volume * 0.0008;
-            } 
-            else if(d.volume < 15000){
+            }
+            else if (d.volume < 15000) {
                 return d.volume * 0.0009;
             }
-            else if(d.volume < 20000){
+            else if (d.volume < 20000) {
                 return d.volume * 0.0009;
             }
-            else{
+            else {
                 return d.volume * 0.0003;
             }
-            
-            
-            
+
+
+
         })
         .attr('fill', (d) => {
             //Circelns färg enligt stationens användning
