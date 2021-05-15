@@ -17,9 +17,10 @@ d3.json("./data/hsl_nousijamäärät.geojson")
                 name: data.features[i].properties.Nimi,
                 id: data.features[i].properties.OBJECTID,
                 volume: data.features[i].properties.Nousijamaa,
-                lat: data.features[i].properties.fx,
-                lon: data.features[i].properties.fy
+                lat: data.features[i].geometry.coordinates[0],
+                lon: data.features[i].geometry.coordinates[1]
             });
+            
             //Om itis station (IK) förgrena mot mellunmäki och puotila
             switch (data.features[i].properties.Lyhyt_tunn) {
                 case 'IK':
@@ -53,7 +54,9 @@ d3.json("./data/hsl_nousijamäärät.geojson")
             trainData.push({
                 name: data.features[i].properties.Nimi,
                 id: data.features[i].properties.OBJECTID,
-                volume: data.features[i].properties.Nousijamaa
+                volume: data.features[i].properties.Nousijamaa,
+                lat: data.features[i].geometry.coordinates[0],
+                lon: data.features[i].geometry.coordinates[1]
             });
             for (let j = 0; j < data.features[i].properties.link.length; j++) {
                 if (!data.features[i].properties.link[j] == 0) {
@@ -80,10 +83,8 @@ d3.json("./data/hsl_nousijamäärät.geojson")
                 case "rail":
                     createTrainChart(dT);
                     break;
-
             }
         })
-
     })
 
 //från lektionsexemplen
@@ -148,8 +149,13 @@ function createMetroChart(data) {
             })
             .on('end', (event, d) => {
                 if (!event.active) simulation.alphaTarget(0);
-                d.fx = d.x;
-                d.fy = d.y;
+                if (positioning === 'map') {
+                    d.fx = d.x;
+                    d.fy = d.y
+                } else {
+                    d.fx = null;
+                    d.fy = null;
+                }
             })
         );
 
@@ -180,43 +186,50 @@ function createMetroChart(data) {
         tooltip.style('opacity', 0)
     }
 
-    d3.select('#toggle').on('click', toggle)
+    d3.select('#toggle').on('click', toggleMetro)
 
-    function toggle() {
+    function toggleMetro() {
         if (positioning === 'map') {
             positioning = 'sim'
 
             data.nodes.forEach(function (d) {
+                d.x = d.fx;
+                d.y = d.fy;
                 d.fx = null;
                 d.fy = null;
-                d.x = 250;
-                d.y = 150;
-
             })
+            simulation.alphaTarget(0.3).restart();
         } else {
-            positioning = 'map'
+            positioning = 'map';
             data.nodes.forEach(function (d) {
-                d.fx = d.lat;
-                d.fy = d.lon;
-                simulation.alphaTarget(0.3).restart();
+                let projection = d3.geoEqualEarth()
+                    .center([25.09000, 60.20921])
+                    .translate([500, 300])
+                    .scale([1000 * 200])
 
+                let pos = projection([d.lat, d.lon])
+                d.fx = pos[0];
+                d.fy = pos[1];
             })
         }
 
     }
 }
 function createTrainChart(data) {
+
+    let positioning = 'sim';
+
     const simulation = d3.forceSimulation(data.nodes)
         .force('charge', d3.forceManyBody().strength(-20))
         .force('link', d3.forceLink(data.links).id(d => d.id)
             .distance(5))
-        .force('center', d3.forceCenter(250, 250))
+        .force('center', d3.forceCenter(500, 300))
 
     const svg = d3.select('body')
         .append('svg')
         .style('background', 'gray')
         //min-x, min-y, height, width
-        .attr("viewBox", [0, 0, 600, 600]);
+        .attr("viewBox", [0, 0, 1000, 600]);
 
     const link = svg
         .selectAll('path.link')
@@ -293,8 +306,13 @@ function createTrainChart(data) {
             })
             .on('end', (event, d) => {
                 if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+                if (positioning === 'map') {
+                    d.fx = d.x;
+                    d.fy = d.y
+                } else {
+                    d.fx = null;
+                    d.fy = null;
+                }
             })
         );
 
@@ -325,4 +343,32 @@ function createTrainChart(data) {
         tooltip.style('opacity', 0)
     }
 
+    d3.select('#toggle').on('click', toggle)
+
+    function toggle() {
+        if (positioning === 'map') {
+            positioning = 'sim'
+
+            data.nodes.forEach(function (d) {
+                d.x = d.fx;
+                d.y = d.fy;
+                d.fx = null;
+                d.fy = null;
+
+            })
+            simulation.alphaTarget(0.3).restart();
+        } else {
+            positioning = 'map'
+            data.nodes.forEach(function (d) {
+                let projection = d3.geoEqualEarth()
+                    .center([24.70000, 60.21921])
+                    .translate([500, 300])
+                    .scale([1000 * 90])
+
+                let pos = projection([d.lat, d.lon])
+                d.fx = pos[0];
+                d.fy = pos[1];
+            })
+        }
+    }
 }
