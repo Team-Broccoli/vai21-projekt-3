@@ -53,12 +53,10 @@ d3.json("https://opendata.arcgis.com/datasets/c26bd38e37eb41eab20941cbe5dc6bd5_0
 
 function createChart(data){
     const simulation = d3.forceSimulation(data.nodes)
-    //"laddnings" animation, som elektroner/magneter
-    .force('charge', d3.forceManyBody().strength(-100))
-    //arrow function https://youtu.be/h33Srr5J9nY
+    .force('charge', d3.forceManyBody().strength(-50))
     .force('link', d3.forceLink(data.links).id(d => d.id)
-    .distance(50))
-    .force('center', d3.forceCenter(300, 300))
+    .distance(20))
+    .force('center', d3.forceCenter(250, 250))
 
     const svg = d3.select('body')
         .append('svg')
@@ -79,9 +77,24 @@ function createChart(data){
         .data(data.nodes)
         .enter()
         .append('circle')
-            .attr('r', 2)
-            .attr('fill', 'white')
-            .attr('stroke', 'blue')
+            .attr('r', d => d.volume*0.0005)
+            .attr('fill', (d) => {
+                //Circelns färg enligt stationens användning
+                //console.log(d.volume)
+                if(d.volume <= 5000){
+                    return 'green';
+                }
+                if(d.volume <= 10000){
+                    return 'yellow';
+                }
+                if(d.volume <= 20000){
+                    return 'orange';
+                }
+                if(d.volume <= 30000){
+                    return 'red';
+                }
+            })
+            .attr('stroke', 'black')
         .on('mouseover', tooltipOp)
         .on('mouseout', tooltipCl)
         .call(d3.drag()
@@ -118,7 +131,7 @@ function createChart(data){
 
     function tooltipOp(event, d){
         tooltip.style('opacity', 1);
-        tooltip.html(d.name)
+        tooltip.html(d.name + ". Nousijamäärä: " + d.volume)
             .style('left', event.pageX-20 + 'px')
             .style('top', event.pageY - 50 + 'px');
 
