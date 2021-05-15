@@ -13,8 +13,35 @@ d3.json("https://opendata.arcgis.com/datasets/c26bd38e37eb41eab20941cbe5dc6bd5_0
             for(let j = 0; j<17; j++){
                 metroData[j] = data.features[i];
             }
+            //Om itis station (IK) förgrena mot mellunmäki och puotila
+            switch(data.features[i].properties.Lyhyt_tunn) {
+                case 'IK':
+                    links.push({
+                        source: data.features[i].properties.OBJECTID,
+                        target: data.features[i].properties.OBJECTID + 1
+                    })
+
+                    links.push({
+                        source: data.features[i].properties.OBJECTID,
+                        target: 64
+                    })
+                    break;
+                //Mellunmäki, fortsätt inte
+                case 'MM':
+                    break;
+                //Vuosaari, fortsätt inte
+                case 'VS':
+                    break;
+
+                default:
+                    links.push({
+                        source: data.features[i].properties.OBJECTID,
+                        target: data.features[i].properties.OBJECTID + 1
+                    })
+            }
         }
         console.log(metroData[0])
+        console.log(links);
         
     })
 
