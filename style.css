@@ -1,7 +1,15 @@
 body{
     padding: 20px;
 }
-svg{
-    width: 2000px;
-    height: 1000px;
+#tooltip{
+    /*height: 30px;
+    width: 200px;
+    /*background-color: rgba(228, 0, 0, 0.5);*/
+    color: blue;
+    font-size: large;
+    position: absolute;
+    pointer-events: none;
+    border-radius: 3px;
+    padding: 0px 0px 0px 7px;
 }
+

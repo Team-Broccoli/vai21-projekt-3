@@ -121,6 +121,7 @@ function createChart(data){
         tooltip.html(d.name)
             .style('left', event.pageX-20 + 'px')
             .style('top', event.pageY - 50 + 'px');
+
     }
 
     function tooltipCl(event, d){
