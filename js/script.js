@@ -20,7 +20,7 @@ d3.json("./data/hsl_nousijamäärät.geojson")
                 lat: data.features[i].geometry.coordinates[0],
                 lon: data.features[i].geometry.coordinates[1]
             });
-            
+
             //Om itis station (IK) förgrena mot mellunmäki och puotila
             switch (data.features[i].properties.Lyhyt_tunn) {
                 case 'IK':
@@ -78,10 +78,15 @@ d3.json("./data/hsl_nousijamäärät.geojson")
 
             switch (selection) {
                 case "metro":
+                    destroySaab();
                     createMetroChart(dM);
                     break;
                 case "rail":
+                    destroySaab();
                     createTrainChart(dT);
+                    break;
+                case "saab":
+                    createSaab();
                     break;
             }
         })
@@ -371,4 +376,13 @@ function createTrainChart(data) {
             })
         }
     }
+}
+
+function createSaab() {
+    $("svg").empty();
+    $("#saab").append('<img src="./suaab.svg" alt="Suaab" border="0">');
+}
+
+function destroySaab() {
+    $("#saab").empty();
 }
