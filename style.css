@@ -2,10 +2,8 @@ body{
     padding: 20px;
 }
 #tooltip{
-    /*height: 30px;
-    width: 200px;
-    /*background-color: rgba(228, 0, 0, 0.5);*/
-    color: blue;
+    background-color: rgba(228, 0, 0, 0.5);
+    color: white;
     font-size: large;
     position: absolute;
     pointer-events: none;

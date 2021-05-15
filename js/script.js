@@ -1,4 +1,3 @@
-//metro
 d3.json("./data/hsl_nousijamäärät.geojson")
     .then(function (data) {
         //metro data
@@ -67,6 +66,7 @@ d3.json("./data/hsl_nousijamäärät.geojson")
         const dM = {nodes: metroData, links: metroLinks};
         
         createMetroChart(dM);
+
         $('#selection').change(function(){
             d3.selectAll('svg').remove();
             let selection = $('#selection').val(); 
@@ -84,7 +84,7 @@ d3.json("./data/hsl_nousijamäärät.geojson")
 
     })
 
-
+//från lektionsexemplen
 function createMetroChart(data) {
     const simulation = d3.forceSimulation(data.nodes)
         .force('charge', d3.forceManyBody().strength(-50))
@@ -124,7 +124,7 @@ function createMetroChart(data) {
             if (d.volume <= 20000) {
                 return 'orange';
             }
-            if (d.volume <= 30000) {
+            if (d.volume <= 30000 || d.volume < 30000) {
                 return 'red';
             }
         })
@@ -165,7 +165,7 @@ function createMetroChart(data) {
 
     function tooltipOp(event, d) {
         tooltip.style('opacity', 1);
-        tooltip.html(d.name + ". Nousijamäärä: " + d.volume)
+        tooltip.html(d.name + ".<br> Nousijamäärä: " + d.volume)
             .style('left', event.pageX - 20 + 'px')
             .style('top', event.pageY - 50 + 'px');
 
@@ -178,9 +178,9 @@ function createMetroChart(data) {
 }
 function createTrainChart(data) {
     const simulation = d3.forceSimulation(data.nodes)
-        .force('charge', d3.forceManyBody().strength(-50))
+        .force('charge', d3.forceManyBody().strength(-20))
         .force('link', d3.forceLink(data.links).id(d => d.id)
-            .distance(20))
+            .distance(5))
         .force('center', d3.forceCenter(250, 250))
 
     const svg = d3.select('body')
@@ -194,7 +194,7 @@ function createTrainChart(data) {
         .data(data.links)
         .enter()
         .append('path')
-        .attr('stroke', 'salmon')
+        .attr('stroke', 'purple')
         .attr('stroke-width', 2)
         .attr('fill', 'none');
 
@@ -202,7 +202,37 @@ function createTrainChart(data) {
         .data(data.nodes)
         .enter()
         .append('circle')
-        .attr('r', d => d.volume * 0.0005)
+        .attr('r', (d) => {
+            //någorlunda vettig skala
+            //fritt fram o leka fram bättre :D
+            if(d.volume < 500){
+                return d.volume * 0.01;
+            } 
+            else if(d.volume < 1000){
+                return d.volume * 0.003;
+            }
+            else if(d.volume < 2000){
+                return d.volume * 0.002;
+            }
+            else if(d.volume < 5000){
+                return d.volume * 0.001;
+            }
+            else if(d.volume < 10000){
+                return d.volume * 0.0008;
+            } 
+            else if(d.volume < 15000){
+                return d.volume * 0.0009;
+            }
+            else if(d.volume < 20000){
+                return d.volume * 0.0009;
+            }
+            else{
+                return d.volume * 0.0003;
+            }
+            
+            
+            
+        })
         .attr('fill', (d) => {
             //Circelns färg enligt stationens användning
             //console.log(d.volume)
@@ -215,7 +245,7 @@ function createTrainChart(data) {
             if (d.volume <= 20000) {
                 return 'orange';
             }
-            if (d.volume <= 30000) {
+            if (d.volume <= 30000 || d.volume > 30000) {
                 return 'red';
             }
         })
@@ -256,7 +286,7 @@ function createTrainChart(data) {
 
     function tooltipOp(event, d) {
         tooltip.style('opacity', 1);
-        tooltip.html(d.name + ". Nousijamäärä: " + d.volume)
+        tooltip.html(d.name + ".<br> Nousijamäärä: " + d.volume)
             .style('left', event.pageX - 20 + 'px')
             .style('top', event.pageY - 50 + 'px');
 
