@@ -55,25 +55,37 @@ d3.json("./data/hsl_nousijamäärät.geojson")
                 volume: data.features[i].properties.Nousijamaa
             });
             for (let j = 0; j < data.features[i].properties.link.length; j++) {
-                if (!data.features[i].properties.link[j] === 0) {
+                if (!data.features[i].properties.link[j] == 0) {
                     trainLinks.push({
                         source: data.features[i].properties.OBJECTID,
-                        links: data.features[i].properties.link[j]
+                        target: data.features[i].properties.link[j]
                     })
-                }
+                } 
             }
         }
-
-        console.log(trainLinks)
-        console.log(trainData)
-        //const d = {nodes: metroData, links: metroLinks};
-        const d = { nodes: trainData, links: trainLinks };
-        createChart(d)
+        const dT = {nodes: trainData, links: trainLinks};
+        const dM = {nodes: metroData, links: metroLinks};
+        
+        createMetroChart(dM);
+        $('#selection').change(function(){
+            d3.selectAll('svg').remove();
+            let selection = $('#selection').val(); 
+            
+            switch(selection){
+                case "metro":
+                    createMetroChart(dM);
+                    break;
+                case "rail":
+                    createTrainChart(dT);
+                    break;
+                    
+            }
+        })
 
     })
 
 
-function createChart(data) {
+function createMetroChart(data) {
     const simulation = d3.forceSimulation(data.nodes)
         .force('charge', d3.forceManyBody().strength(-50))
         .force('link', d3.forceLink(data.links).id(d => d.id)
@@ -164,4 +176,94 @@ function createChart(data) {
     }
 
 }
+function createTrainChart(data) {
+    const simulation = d3.forceSimulation(data.nodes)
+        .force('charge', d3.forceManyBody().strength(-50))
+        .force('link', d3.forceLink(data.links).id(d => d.id)
+            .distance(20))
+        .force('center', d3.forceCenter(250, 250))
 
+    const svg = d3.select('body')
+        .append('svg')
+        .style('background', 'gray')
+        //min-x, min-y, height, width
+        .attr("viewBox", [0, 0, 600, 600]);
+
+    const link = svg
+        .selectAll('path.link')
+        .data(data.links)
+        .enter()
+        .append('path')
+        .attr('stroke', 'salmon')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
+
+    const node = svg.selectAll('circle')
+        .data(data.nodes)
+        .enter()
+        .append('circle')
+        .attr('r', d => d.volume * 0.0005)
+        .attr('fill', (d) => {
+            //Circelns färg enligt stationens användning
+            //console.log(d.volume)
+            if (d.volume <= 5000) {
+                return 'green';
+            }
+            if (d.volume <= 10000) {
+                return 'yellow';
+            }
+            if (d.volume <= 20000) {
+                return 'orange';
+            }
+            if (d.volume <= 30000) {
+                return 'red';
+            }
+        })
+        .attr('stroke', 'black')
+        .on('mouseover', tooltipOp)
+        .on('mouseout', tooltipCl)
+        .call(d3.drag()
+            .on('start', (event, d) => {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            })
+            .on('drag', (event, d) => {
+                d.fx = event.x;
+                d.fy = event.y;
+            })
+            .on('end', (event, d) => {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            })
+        );
+
+    const lineGenerator = d3.line();
+
+    simulation.on('tick', () => {
+        node.attr('cx', d => d.x);
+        node.attr('cy', d => d.y);
+        link.attr('d', d => lineGenerator([
+            [d.source.x, d.source.y],
+            [d.target.x, d.target.y]])
+        )
+    });
+
+    const tooltip = d3.select('body').append('div')
+        .attr('id', 'tooltip')
+        .style('opacity', 0)
+
+    function tooltipOp(event, d) {
+        tooltip.style('opacity', 1);
+        tooltip.html(d.name + ". Nousijamäärä: " + d.volume)
+            .style('left', event.pageX - 20 + 'px')
+            .style('top', event.pageY - 50 + 'px');
+
+    }
+
+    function tooltipCl(event, d) {
+        tooltip.style('opacity', 0)
+    }
+
+}
