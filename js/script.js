@@ -1,6 +1,6 @@
 //metro
 d3.json("./data/hsl_nousijamäärät.geojson")
-    .then(function(data){
+    .then(function (data) {
         //metro data
         const metroLinks = [];
         const metroData = [];
@@ -11,16 +11,16 @@ d3.json("./data/hsl_nousijamäärät.geojson")
 
         // https://public-transport-hslhrt.opendata.arcgis.com/datasets/hsln-nousijam%C3%A4%C3%A4r%C3%A4t/data?geometry=23.009%2C59.925%2C26.489%2C60.404&page=7
         // Metrons ID:n 50-66
-        
+
         //Skapar egen array för metro objekt
-        for(let i = 49; i<=65; i++){
+        for (let i = 49; i <= 65; i++) {
             metroData.push({
                 name: data.features[i].properties.Nimi,
                 id: data.features[i].properties.OBJECTID,
                 volume: data.features[i].properties.Nousijamaa
             });
             //Om itis station (IK) förgrena mot mellunmäki och puotila
-            switch(data.features[i].properties.Lyhyt_tunn) {
+            switch (data.features[i].properties.Lyhyt_tunn) {
                 case 'IK':
                     metroLinks.push({
                         source: data.features[i].properties.OBJECTID,
@@ -47,35 +47,38 @@ d3.json("./data/hsl_nousijamäärät.geojson")
             }
         }
 
-        
         //tåg data arrays
-        for (let i = 0; i <= 44; i++){
+        for (let i = 0; i <= 44; i++) {
             trainData.push({
                 name: data.features[i].properties.Nimi,
                 id: data.features[i].properties.OBJECTID,
                 volume: data.features[i].properties.Nousijamaa
             });
-            trainLinks.push({
-                source: data.features[i].properties.OBJECTID,
-                links: data.features[i].properties.link
-            })
+            for (let j = 0; j < data.features[i].properties.link.length; j++) {
+                if (!data.features[i].properties.link[j] === 0) {
+                    trainLinks.push({
+                        source: data.features[i].properties.OBJECTID,
+                        links: data.features[i].properties.link[j]
+                    })
+                }
+            }
         }
 
         console.log(trainLinks)
         console.log(trainData)
         //const d = {nodes: metroData, links: metroLinks};
-        const d = {nodes: trainData, links: trainLinks};
+        const d = { nodes: trainData, links: trainLinks };
         createChart(d)
-        
+
     })
 
 
-function createChart(data){
+function createChart(data) {
     const simulation = d3.forceSimulation(data.nodes)
-    .force('charge', d3.forceManyBody().strength(-50))
-    .force('link', d3.forceLink(data.links).id(d => d.id)
-    .distance(20))
-    .force('center', d3.forceCenter(250, 250))
+        .force('charge', d3.forceManyBody().strength(-50))
+        .force('link', d3.forceLink(data.links).id(d => d.id)
+            .distance(20))
+        .force('center', d3.forceCenter(250, 250))
 
     const svg = d3.select('body')
         .append('svg')
@@ -88,37 +91,37 @@ function createChart(data){
         .data(data.links)
         .enter()
         .append('path')
-            .attr('stroke', 'salmon')
-            .attr('stroke-width', 2)
-            .attr('fill', 'none');   
+        .attr('stroke', 'salmon')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
 
     const node = svg.selectAll('circle')
         .data(data.nodes)
         .enter()
         .append('circle')
-            .attr('r', d => d.volume*0.0005)
-            .attr('fill', (d) => {
-                //Circelns färg enligt stationens användning
-                //console.log(d.volume)
-                if(d.volume <= 5000){
-                    return 'green';
-                }
-                if(d.volume <= 10000){
-                    return 'yellow';
-                }
-                if(d.volume <= 20000){
-                    return 'orange';
-                }
-                if(d.volume <= 30000){
-                    return 'red';
-                }
-            })
-            .attr('stroke', 'black')
+        .attr('r', d => d.volume * 0.0005)
+        .attr('fill', (d) => {
+            //Circelns färg enligt stationens användning
+            //console.log(d.volume)
+            if (d.volume <= 5000) {
+                return 'green';
+            }
+            if (d.volume <= 10000) {
+                return 'yellow';
+            }
+            if (d.volume <= 20000) {
+                return 'orange';
+            }
+            if (d.volume <= 30000) {
+                return 'red';
+            }
+        })
+        .attr('stroke', 'black')
         .on('mouseover', tooltipOp)
         .on('mouseout', tooltipCl)
         .call(d3.drag()
             .on('start', (event, d) => {
-                if(!event.active) simulation.alphaTarget(0.3).restart();
+                if (!event.active) simulation.alphaTarget(0.3).restart();
                 d.fx = d.x;
                 d.fy = d.y;
             })
@@ -127,7 +130,7 @@ function createChart(data){
                 d.fy = event.y;
             })
             .on('end', (event, d) => {
-                if(!event.active) simulation.alphaTarget(0);
+                if (!event.active) simulation.alphaTarget(0);
                 d.fx = null;
                 d.fy = null;
             })
@@ -136,29 +139,29 @@ function createChart(data){
     const lineGenerator = d3.line();
 
     simulation.on('tick', () => {
-                    node.attr('cx', d => d.x);
-                    node.attr('cy', d => d.y);
-                    link.attr('d', d => lineGenerator([
-                    [d.source.x, d.source.y], 
-                    [d.target.x, d.target.y]]) 
-                    )
+        node.attr('cx', d => d.x);
+        node.attr('cy', d => d.y);
+        link.attr('d', d => lineGenerator([
+            [d.source.x, d.source.y],
+            [d.target.x, d.target.y]])
+        )
     });
 
     const tooltip = d3.select('body').append('div')
         .attr('id', 'tooltip')
-        .style('opacity', 0)    
+        .style('opacity', 0)
 
-    function tooltipOp(event, d){
+    function tooltipOp(event, d) {
         tooltip.style('opacity', 1);
         tooltip.html(d.name + ". Nousijamäärä: " + d.volume)
-            .style('left', event.pageX-20 + 'px')
+            .style('left', event.pageX - 20 + 'px')
             .style('top', event.pageY - 50 + 'px');
 
     }
 
-    function tooltipCl(event, d){
+    function tooltipCl(event, d) {
         tooltip.style('opacity', 0)
-    }   
+    }
 
 }
-        
+
