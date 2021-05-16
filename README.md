@@ -12,5 +12,10 @@ Själva datan innehåller ju inte länkar till stationerna, så man hamnade sjä
 
 Länkande av tågnätverket skulle ha varit för jobbigt, så bestämde vi att editera originella geojson datan och länka ihop stationerna istället i datan
 
-Vid början av projektet tänkte vi att det räcker med att man visualiserar nätverken med force-directed nätverk, men beslöt att sätta in en toggle för att byta mellan flytande och en karta som baserar sig på stationernas koordinater i riktiga världen
+Vid början av projektet tänkte vi att det räcker med att man visualiserar nätverken med force-directed nätverk, men beslöt att sätta in en toggle för att byta mellan flytande och en karta som baserar sig på stationernas koordinater i riktiga världen.
 
+------------
+
+Som vitsord skulle vi ge en full 4.5.
+
+Visualiseringen illustrerar de vi vill visa, mängden av stigande passagerare per station. Nodernas storlek och färg varierar beroende på mängden av passagerare. Det finns små bugs, out of bounds, etc.
